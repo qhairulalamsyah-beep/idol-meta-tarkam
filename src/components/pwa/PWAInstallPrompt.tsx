@@ -13,8 +13,8 @@ import {
    PWA Install Prompt — Premium "Add to Home Screen" Component
    
    - Detects `beforeinstallprompt` event (Chrome/Edge/Android)
-   - Shows a sleek bottom sheet after user has visited 2+ times
-   - Stores dismiss state in localStorage (respects user choice)
+   - Shows prompt after 2nd visit
+   - Allows up to 3 dismisses before permanent hide
    - iOS fallback: shows "Add to Home Screen" instructions
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -25,7 +25,9 @@ interface BeforeInstallPromptEvent extends Event {
 
 const STORAGE_KEY = 'idm-pwa-install';
 const VISIT_COUNT_KEY = 'idm-visit-count';
-const MIN_VISITS_BEFORE_SHOW = 1; // Changed to 1 for testing - will show on first visit
+const DISMISS_COUNT_KEY = 'idm-dismiss-count';
+const MIN_VISITS_BEFORE_SHOW = 2;
+const MAX_DISMISSES = 3;
 
 function getIsStandalone(): boolean {
   if (typeof window === 'undefined') return false;
@@ -35,10 +37,15 @@ function getIsStandalone(): boolean {
   );
 }
 
-function getInstallDismissed(): boolean {
-  if (typeof window === 'undefined') return false;
-  const v = localStorage.getItem(STORAGE_KEY);
-  return v === 'dismissed' || v === 'installed';
+function getInstallStatus(): { installed: boolean; dismissed: boolean; dismissCount: number } {
+  if (typeof window === 'undefined') return { installed: false, dismissed: false, dismissCount: 0 };
+  const status = localStorage.getItem(STORAGE_KEY);
+  const dismissCount = parseInt(localStorage.getItem(DISMISS_COUNT_KEY) || '0', 10);
+  return {
+    installed: status === 'installed',
+    dismissed: status === 'dismissed',
+    dismissCount,
+  };
 }
 
 export function PWAInstallPrompt() {
@@ -46,15 +53,21 @@ export function PWAInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [showIosHint, setShowIosHint] = useState(false);
   const [installed, setInstalled] = useState(getIsStandalone);
+  const [dismissCount, setDismissCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isInstalled = installed || getInstallDismissed();
+  const { installed: isAlreadyInstalled, dismissed: isPermanentlyDismissed } = getInstallStatus();
+  const shouldHide = installed || isAlreadyInstalled || isPermanentlyDismissed;
 
   // Listen for beforeinstallprompt + appinstalled
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (isInstalled) return;
+    if (shouldHide) return;
+
+    // Load dismiss count
+    const storedDismissCount = parseInt(localStorage.getItem(DISMISS_COUNT_KEY) || '0', 10);
+    setDismissCount(storedDismissCount);
 
     // Track visit count
     const visits = parseInt(localStorage.getItem(VISIT_COUNT_KEY) || '0', 10) + 1;
@@ -65,7 +78,7 @@ export function PWAInstallPrompt() {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     if (isIOS && isSafari && visits >= MIN_VISITS_BEFORE_SHOW) {
-      timerRef.current = setTimeout(() => setShowIosHint(true), 2000); // 2 seconds for testing
+      timerRef.current = setTimeout(() => setShowIosHint(true), 3000);
       return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }
 
@@ -74,7 +87,7 @@ export function PWAInstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       if (visits >= MIN_VISITS_BEFORE_SHOW) {
-        timerRef.current = setTimeout(() => setShowPrompt(true), 2000); // 2 seconds for testing
+        timerRef.current = setTimeout(() => setShowPrompt(true), 3000);
       }
     };
 
@@ -93,7 +106,7 @@ export function PWAInstallPrompt() {
       window.removeEventListener('appinstalled', installedHandler);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [isInstalled]);
+  }, [shouldHide]);
 
   const handleInstall = useCallback(async () => {
     if (!deferredPrompt) return;
@@ -105,19 +118,33 @@ export function PWAInstallPrompt() {
     if (outcome === 'accepted') {
       localStorage.setItem(STORAGE_KEY, 'installed');
     } else {
-      localStorage.setItem(STORAGE_KEY, 'dismissed');
+      // User dismissed the native prompt - count as dismiss
+      const newCount = dismissCount + 1;
+      localStorage.setItem(DISMISS_COUNT_KEY, String(newCount));
+      if (newCount >= MAX_DISMISSES) {
+        localStorage.setItem(STORAGE_KEY, 'dismissed');
+      }
     }
 
     setShowPrompt(false);
     setDeferredPrompt(null);
     setIsAnimating(false);
-  }, [deferredPrompt]);
+  }, [deferredPrompt, dismissCount]);
 
   const handleDismiss = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, 'dismissed');
+    // Increment dismiss count
+    const newCount = dismissCount + 1;
+    localStorage.setItem(DISMISS_COUNT_KEY, String(newCount));
+    setDismissCount(newCount);
+
+    // If reached max dismisses, permanently hide
+    if (newCount >= MAX_DISMISSES) {
+      localStorage.setItem(STORAGE_KEY, 'dismissed');
+    }
+
     setShowPrompt(false);
     setShowIosHint(false);
-  }, []);
+  }, [dismissCount]);
 
   const handleShowNow = useCallback(() => {
     if (deferredPrompt) {
@@ -125,8 +152,8 @@ export function PWAInstallPrompt() {
     }
   }, [deferredPrompt]);
 
-  // Don't render if installed or dismissed
-  if (isInstalled) return null;
+  // Don't render if installed or permanently dismissed
+  if (shouldHide) return null;
 
   return (
     <>
