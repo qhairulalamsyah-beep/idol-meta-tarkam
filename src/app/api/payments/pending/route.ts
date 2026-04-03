@@ -44,7 +44,7 @@ export async function GET() {
       message: d.message,
       paymentMethod: d.paymentMethod,
       proofImageUrl: d.proofImageUrl,
-      from: d.anonymous ? 'Anonim' : (d.user?.name || 'Anonim'),
+      from: d.anonymous ? 'Anonim' : (d.donorName || d.user?.name || 'Anonim'),
       fromAvatar: d.anonymous ? null : (d.user?.avatar || null),
       createdAt: d.createdAt.toISOString(),
     }));
