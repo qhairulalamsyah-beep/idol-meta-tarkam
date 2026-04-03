@@ -23,8 +23,7 @@ import {
 } from 'lucide-react';
 import { QualifiedPlayersModal } from './QualifiedPlayersModal';
 import { AllRankingsModal } from './AllRankingsModal';
-import { DonationModal } from './DonationModal';
-import { SawerModal } from './SawerModal';
+import { DonasiSawerModal } from './DonasiSawerModal';
 
 /* ─────────────────────────────────────────────
    Interfaces — preserved exactly
@@ -317,11 +316,9 @@ export function Dashboard({
   /* ── All Rankings Modal State ── */
   const [allRankingsModalOpen, setAllRankingsModalOpen] = useState(false);
 
-  /* ── Donation Modal State ── */
-  const [donationModalOpen, setDonationModalOpen] = useState(false);
-
-  /* ── Sawer Modal State ── */
-  const [sawerModalOpen, setSawerModalOpen] = useState(false);
+  /* ── Combined Donation/Sawer Modal State ── */
+  const [donasiSawerModalOpen, setDonasiSawerModalOpen] = useState(false);
+  const [donasiSawerDefaultTab, setDonasiSawerDefaultTab] = useState<'sawer' | 'donasi'>('sawer');
 
   /* ── Deterministic gradient for club letter avatar ── */
   const clubGradients = [
@@ -542,7 +539,7 @@ export function Dashboard({
                   {/* Sawer */}
                   <div
                     className="info-block cursor-pointer hover:bg-white/[0.02] rounded-xl transition-colors"
-                    onClick={(e) => { e.stopPropagation(); setSawerModalOpen(true); }}
+                    onClick={(e) => { e.stopPropagation(); setDonasiSawerDefaultTab('sawer'); setDonasiSawerModalOpen(true); }}
                   >
                     <div className={`info-block-icon ${isMale ? 'icon-gold' : 'icon-pink'}`}>
                       <Gift className="w-3.5 h-3.5" />
@@ -862,7 +859,7 @@ export function Dashboard({
 
         {/* DONASI / SUPPORT */}
         <motion.button
-          onClick={() => setDonationModalOpen(true)}
+          onClick={() => { setDonasiSawerDefaultTab('donasi'); setDonasiSawerModalOpen(true); }}
           className="relative glass inner-light rounded-2xl p-3 sm:p-4 lg:p-6 text-center card-3d cursor-pointer group overflow-hidden"
           whileHover={{ scale: 1.04, y: -2 }}
           whileTap={{ scale: 0.96 }}
@@ -1525,24 +1522,17 @@ export function Dashboard({
         division={division}
       />
 
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={donationModalOpen}
-        onOpenChange={setDonationModalOpen}
+      {/* Combined Donation/Sawer Modal */}
+      <DonasiSawerModal
+        isOpen={donasiSawerModalOpen}
+        onOpenChange={setDonasiSawerModalOpen}
         division={division}
         totalDonation={totalDonation}
-        onDonate={onDonate}
-      />
-
-      {/* Sawer Modal */}
-      <SawerModal
-        isOpen={sawerModalOpen}
-        onOpenChange={setSawerModalOpen}
-        division={division}
         totalSawer={totalSawer}
-        prizePool={tournament?.prizePool || 0}
-        topPlayers={topPlayers}
+        tournamentPrizePool={tournament?.prizePool || 0}
+        onDonate={onDonate}
         onSawer={onSawer}
+        defaultTab={donasiSawerDefaultTab}
       />
     </motion.div>
   );
