@@ -28,9 +28,9 @@ const DEFAULT_PERMISSIONS: Permission = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { requesterId, name, email, password, permissions: customPermissions } = body;
+    const { requesterId, name, pin, permissions: customPermissions } = body;
 
-    console.log('[ADMIN CREATE] Request:', { requesterId, name, hasPassword: !!password, permKeys: customPermissions ? Object.keys(customPermissions) : [] });
+    console.log('[ADMIN CREATE] Request:', { requesterId, name, hasPin: !!pin, permKeys: customPermissions ? Object.keys(customPermissions) : [] });
 
     // Verify requester is super_admin
     const requester = await db.user.findUnique({ where: { id: requesterId } });
@@ -38,11 +38,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Akses ditolak — hanya super admin' }, { status: 403 });
     }
 
-    if (!name || !password) {
-      return NextResponse.json({ success: false, error: 'Nama dan password wajib diisi' }, { status: 400 });
+    if (!name || !pin) {
+      return NextResponse.json({ success: false, error: 'Nama dan PIN wajib diisi' }, { status: 400 });
     }
 
-    const emailVal = email || `${name.toLowerCase().replace(/\s+/g, '_')}@idm.id`;
+    // Validate PIN format (6 digits)
+    if (!/^\d{6}$/.test(pin)) {
+      return NextResponse.json({ success: false, error: 'PIN harus 6 digit angka' }, { status: 400 });
+    }
+
+    const emailVal = `${name.toLowerCase().replace(/\s+/g, '_')}@idm.id`;
 
     // Check duplicate name among admins only
     const existingAdmin = await db.user.findFirst({
@@ -52,10 +57,10 @@ export async function POST(request: NextRequest) {
       }
     });
     if (existingAdmin) {
-      return NextResponse.json({ success: false, error: 'Username admin sudah digunakan' }, { status: 409 });
+      return NextResponse.json({ success: false, error: 'Nama admin sudah digunakan' }, { status: 409 });
     }
 
-    const hash = createHash('sha256').update(password).digest('hex');
+    const hash = createHash('sha256').update(pin).digest('hex');
     const permissions = JSON.stringify({ ...DEFAULT_PERMISSIONS, ...customPermissions });
 
     const admin = await db.user.create({
@@ -86,11 +91,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update admin permissions or password (super_admin only)
+// PUT - Update admin permissions or PIN (super_admin only)
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { requesterId, targetAdminId, permissions: newPermissions, newPassword } = body;
+    const { requesterId, targetAdminId, permissions: newPermissions, newPin } = body;
 
     // Verify requester is super_admin
     const requester = await db.user.findUnique({ where: { id: requesterId } });
@@ -112,8 +117,12 @@ export async function PUT(request: NextRequest) {
     if (newPermissions) {
       updateData.permissions = JSON.stringify(newPermissions);
     }
-    if (newPassword) {
-      const hash = createHash('sha256').update(newPassword).digest('hex');
+    if (newPin) {
+      // Validate PIN format (6 digits)
+      if (!/^\d{6}$/.test(newPin)) {
+        return NextResponse.json({ success: false, error: 'PIN harus 6 digit angka' }, { status: 400 });
+      }
+      const hash = createHash('sha256').update(newPin).digest('hex');
       updateData.adminPass = hash;
     }
 

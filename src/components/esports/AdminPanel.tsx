@@ -335,7 +335,7 @@ export function AdminPanel({
   const [adminList, setAdminList] = useState<Array<{id: string; name: string; email: string; role: string; permissions: Record<string, boolean>; createdAt: string}>>([]);
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdminName, setNewAdminName] = useState('');
-  const [newAdminPass, setNewAdminPass] = useState('');
+  const [newAdminPin, setNewAdminPin] = useState('');
   const [newAdminPerms, setNewAdminPerms] = useState<Record<string, boolean>>({
     tournament: true, players: true, bracket: true, scores: true,
     prize: true, donations: true, full_reset: false, manage_admins: false,
@@ -2546,14 +2546,18 @@ export function AdminPanel({
                           />
                         </div>
                         <div>
-                          <label className="text-[11px] text-white/35 mb-1.5 block uppercase tracking-wider font-semibold">Password *</label>
+                          <label className="text-[11px] text-white/35 mb-1.5 block uppercase tracking-wider font-semibold">PIN (6 digit) *</label>
                           <input
-                            type="password"
-                            value={newAdminPass}
-                            onChange={(e) => setNewAdminPass(e.target.value)}
-                            placeholder="Password admin"
-                            className="w-full bg-white/5 border border-white/8 rounded-xl px-4 py-3 text-white/90 text-sm placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            value={newAdminPin}
+                            onChange={(e) => setNewAdminPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            placeholder="Contoh: 123456"
+                            className="w-full bg-white/5 border border-white/8 rounded-xl px-4 py-3 text-white/90 text-sm placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors tracking-widest"
                           />
+                          <p className="text-[10px] text-white/25 mt-1">PIN harus 6 digit angka</p>
                         </div>
 
                         {/* Permission Toggles */}
@@ -2598,7 +2602,7 @@ export function AdminPanel({
                           onClick={() => {
                             setShowAddAdmin(false);
                             setNewAdminName('');
-                            setNewAdminPass('');
+                            setNewAdminPin('');
                             setNewAdminPerms({ tournament: true, players: true, bracket: true, scores: true, prize: true, donations: true, full_reset: false, manage_admins: false });
                           }}
                           className="flex-1 py-3 rounded-xl text-sm font-semibold glass-subtle text-white/70"
@@ -2608,8 +2612,12 @@ export function AdminPanel({
                         </motion.button>
                         <motion.button
                           onClick={async () => {
-                            if (!newAdminName.trim() || !newAdminPass.trim()) {
-                              addToast('Nama dan password wajib diisi', 'error');
+                            if (!newAdminName.trim()) {
+                              addToast('Nama wajib diisi', 'error');
+                              return;
+                            }
+                            if (newAdminPin.length !== 6) {
+                              addToast('PIN harus 6 digit', 'error');
                               return;
                             }
                             setRbacLoading(true);
@@ -2617,14 +2625,14 @@ export function AdminPanel({
                               const res = await adminFetch('/api/admin/manage', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ requesterId: adminUser?.id, name: newAdminName.trim(), password: newAdminPass, permissions: newAdminPerms }),
+                                body: JSON.stringify({ requesterId: adminUser?.id, name: newAdminName.trim(), pin: newAdminPin, permissions: newAdminPerms }),
                               });
                               const data = await res.json().catch(() => null);
                               if (res.ok && data?.success) {
                                 setAdminList((prev) => [...prev, { id: data.admin.id, name: data.admin.name, email: data.admin.email || '', role: data.admin.role, permissions: newAdminPerms, createdAt: data.admin.createdAt }]);
                                 setShowAddAdmin(false);
                                 setNewAdminName('');
-                                setNewAdminPass('');
+                                setNewAdminPin('');
                                 setNewAdminPerms({ tournament: true, players: true, bracket: true, scores: true, prize: true, donations: true, full_reset: false, manage_admins: false });
                                 addToast(`Admin "${data.admin.name}" berhasil dibuat`, 'success');
                               } else {
@@ -2636,7 +2644,7 @@ export function AdminPanel({
                             }
                             setRbacLoading(false);
                           }}
-                          disabled={rbacLoading || !newAdminName.trim() || !newAdminPass.trim()}
+                          disabled={rbacLoading || !newAdminName.trim() || newAdminPin.length !== 6}
                           className={`flex-1 py-3 rounded-xl text-sm font-semibold ${isMale ? 'btn-gold' : 'btn-pink'} disabled:opacity-40`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.97 }}
