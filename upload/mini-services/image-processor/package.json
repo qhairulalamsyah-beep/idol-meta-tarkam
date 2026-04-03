@@ -1,0 +1,10 @@
+{
+  "name": "image-processor",
+  "version": "1.0.0",
+  "description": "Python image processor service for compressing and converting images to WebP",
+  "scripts": {
+    "dev": "python3 -m uvicorn main:app --host 0.0.0.0 --port 5005 --reload",
+    "start": "python3 -m uvicorn main:app --host 0.0.0.0 --port 5005",
+    "install-deps": "pip install -r requirements.txt"
+  }
+}
