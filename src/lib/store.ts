@@ -26,6 +26,7 @@ interface Tournament {
   week: number;
   bracketType: string;
   prizePool: number;
+  basePrizePool: number;
   mode: string;
   bpm: string;
   lokasi: string;
@@ -638,7 +639,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       if (res.ok) {
-        get().addToast(`Hadiah diatur! Total: Rp ${prizePool.toLocaleString('id-ID')}`, 'success');
+        const data = await res.json().catch(() => ({}));
+        const finalPrizePool = data.tournament?.prizePool || prizePool;
+        get().addToast(`Hadiah dasar: Rp ${prizePool.toLocaleString('id-ID')}. Total hadiah: Rp ${finalPrizePool.toLocaleString('id-ID')}`, 'success');
         get().fetchData(false);
       }
     } catch (error) {

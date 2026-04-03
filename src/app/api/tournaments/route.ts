@@ -102,6 +102,15 @@ export async function POST(request: NextRequest) {
 
     dbLogger.info('Creating tournament', { division, type, week });
 
+    // Get total confirmed sawer to add to initial prize pool
+    const totalSawer = await db.sawer.aggregate({
+      where: { paymentStatus: 'confirmed' },
+      _sum: { amount: true },
+    });
+    const sawerAmount = totalSawer._sum.amount || 0;
+    const basePrize = prizePool || 0;
+    const totalPrizePool = basePrize + sawerAmount;
+
     const tournament = await db.tournament.create({
       data: {
         id: uuidv4(),
@@ -111,7 +120,8 @@ export async function POST(request: NextRequest) {
         status: 'setup',
         week: week || 1,
         bracketType: bracketType || 'single',
-        prizePool: prizePool || 0,
+        prizePool: totalPrizePool,
+        basePrizePool: basePrize,
         mode: mode || 'GR Arena 3vs3',
         bpm: bpm || '130',
         lokasi: lokasi || 'PUB 1',
@@ -121,7 +131,7 @@ export async function POST(request: NextRequest) {
 
     triggerTournamentUpdate(division || 'male', { action: 'created', tournamentId: tournament.id, division: division || 'male' }).catch(() => {});
 
-    dbLogger.info('Tournament created', { tournamentId: tournament.id, name: tournament.name });
+    dbLogger.info('Tournament created', { tournamentId: tournament.id, name: tournament.name, basePrizePool: basePrize, totalPrizePool });
     apiLogger.response('POST', '/api/tournaments', 201, timer());
 
     return NextResponse.json({ success: true, tournament });
@@ -157,7 +167,6 @@ export async function PUT(request: NextRequest) {
 
     const updateData: Record<string, string | number | Date | null | undefined> = {};
     if (status !== undefined) updateData.status = status;
-    if (prizePool !== undefined) updateData.prizePool = prizePool;
     if (name !== undefined) updateData.name = name;
     if (type !== undefined) updateData.type = type;
     if (bracketType !== undefined) updateData.bracketType = bracketType;
@@ -166,6 +175,31 @@ export async function PUT(request: NextRequest) {
     if (bpm !== undefined) updateData.bpm = bpm;
     if (lokasi !== undefined) updateData.lokasi = lokasi;
     if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
+
+    // Special handling for prizePool update - recalculate with sawer
+    if (prizePool !== undefined) {
+      // Get total confirmed sawer for this tournament
+      const totalSawer = await db.sawer.aggregate({
+        where: {
+          paymentStatus: 'confirmed',
+          tournamentId: tournamentId,
+        },
+        _sum: { amount: true },
+      });
+      const sawerAmount = totalSawer._sum.amount || 0;
+      const basePrize = prizePool;
+      const totalPrizePool = basePrize + sawerAmount;
+
+      updateData.prizePool = totalPrizePool;
+      updateData.basePrizePool = basePrize;
+
+      dbLogger.debug('Recalculating prize pool', {
+        tournamentId,
+        basePrizePool: basePrize,
+        sawerAmount,
+        totalPrizePool
+      });
+    }
 
     dbLogger.debug('Updating tournament', { tournamentId, updates: Object.keys(updateData) });
 
@@ -176,7 +210,7 @@ export async function PUT(request: NextRequest) {
 
     triggerTournamentUpdate(tournament.division, { action: 'updated', tournamentId: tournament.id, division: tournament.division }).catch(() => {});
 
-    dbLogger.info('Tournament updated', { tournamentId, status: tournament.status });
+    dbLogger.info('Tournament updated', { tournamentId, status: tournament.status, prizePool: tournament.prizePool, basePrizePool: tournament.basePrizePool });
     apiLogger.response('PUT', '/api/tournaments', 200, timer());
 
     return NextResponse.json({ success: true, tournament });

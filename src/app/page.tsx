@@ -740,6 +740,7 @@ export default function IDOLMETAApp() {
               mode="page"
               isOpen={true}
               onOpenChange={(open) => setAdminOpen(open)}
+              totalSawer={totalSawer}
             />
           )}
 

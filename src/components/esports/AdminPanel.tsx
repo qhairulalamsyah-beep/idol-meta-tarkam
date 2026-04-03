@@ -72,6 +72,7 @@ interface Tournament {
   division: string;
   week: number;
   prizePool: number;
+  basePrizePool: number;
   type?: string;
   bracketType?: string;
   mode?: string;
@@ -104,6 +105,7 @@ interface AdminPanelProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   mode?: 'sheet' | 'page';
+  totalSawer?: number;
 }
 
 const STEPS = [
@@ -287,6 +289,7 @@ export function AdminPanel({
   isOpen,
   onOpenChange,
   mode = 'sheet',
+  totalSawer = 0,
 }: AdminPanelProps) {
   const { adminUser, addToast, fetchData: storeFetchData, verifyAdminSession } = useAppStore();
   const isPageMode = mode === 'page';
@@ -1188,9 +1191,16 @@ export function AdminPanel({
                     <p className="text-[11px] tracking-[0.2em] uppercase text-white/30 font-semibold">
                       Hadiah Minggu Ini
                     </p>
-                    <span className="text-[10px] text-white/20 font-medium">
-                      Total: Rp {(tournament?.prizePool || 0).toLocaleString('id-ID')}
-                    </span>
+                    <div className="text-right">
+                      <span className="text-[10px] text-white/20 font-medium">
+                        Total: Rp {(tournament?.prizePool || 0).toLocaleString('id-ID')}
+                      </span>
+                      {((tournament?.prizePool || 0) - (tournament?.basePrizePool || 0) > 0) && (
+                        <p className="text-[9px] text-emerald-400/60">
+                          + Rp {((tournament?.prizePool || 0) - (tournament?.basePrizePool || 0)).toLocaleString('id-ID')} dari Sawer
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="glass-subtle rounded-2xl p-4 lg:p-6 space-y-3">
                     {([

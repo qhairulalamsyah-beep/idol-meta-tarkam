@@ -50,21 +50,22 @@ model User {
 
 // Tournament Model
 model Tournament {
-  id          String   @id @default(cuid())
-  name        String
-  division    String            // male / female
-  type        String            // weekly / grand_final
-  status      String   @default("setup") // setup / registration / ongoing / completed
-  week        Int?
-  bracketType String?           // single / double / group
-  prizePool   Float   @default(0)
-  mode        String   @default("GR Arena 3vs3") // game mode
-  bpm         String   @default("130") // BPM or text like 'Random 120-140'
-  lokasi      String   @default("PUB 1") // venue / location
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  division      String            // male / female
+  type          String            // weekly / grand_final
+  status        String   @default("setup") // setup / registration / ongoing / completed
+  week          Int?
+  bracketType   String?           // single / double / group
+  prizePool     Float   @default(0)
+  basePrizePool Float   @default(0)  // Admin-set prize pool (without sawer)
+  mode          String   @default("GR Arena 3vs3") // game mode
+  bpm           String   @default("130") // BPM or text like 'Random 120-140'
+  lokasi        String   @default("PUB 1") // venue / location
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
   registrations Registration[]
