@@ -315,6 +315,7 @@ export function AdminPanel({
 
   // ── Player Management full-screen state ──
   const [showPlayerManagement, setShowPlayerManagement] = useState(false);
+  const [seedingParticipants, setSeedingParticipants] = useState(false);
 
   // ── Pending payments verification state ──
   const [pendingPayments, setPendingPayments] = useState<Array<{
@@ -1154,6 +1155,53 @@ export function AdminPanel({
                       </div>
                     </div>
                   </motion.button>
+                  {/* Seed Participants Button - only show if less than 6 approved */}
+                  {approvedRegistrations.length < 6 && (
+                    <motion.button
+                      onClick={async () => {
+                        if (!tournament) return;
+                        setSeedingParticipants(true);
+                        try {
+                          const res = await adminFetch('/api/seed-participants', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ tournamentId: tournament.id, division: tournament.division }),
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            addToast(data.message, 'success');
+                            storeFetchData(false);
+                          } else {
+                            addToast(data.error || 'Gagal mendaftarkan peserta', 'error');
+                          }
+                        } catch {
+                          addToast('Gagal mendaftarkan peserta', 'error');
+                        } finally {
+                          setSeedingParticipants(false);
+                        }
+                      }}
+                      disabled={seedingParticipants}
+                      className="w-full glass-subtle rounded-2xl p-3 text-left border border-dashed border-white/10"
+                      whileHover={{ scale: seedingParticipants ? 1 : 1.01 }}
+                      whileTap={{ scale: seedingParticipants ? 1 : 0.98 }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                          {seedingParticipants ? (
+                            <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
+                          ) : (
+                            <UserPlus className="w-4 h-4 text-emerald-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-semibold text-white/70">
+                            {seedingParticipants ? 'Mendaftarkan...' : 'Daftarkan Peserta Demo'}
+                          </p>
+                          <p className="text-[10px] text-white/30">12 peserta (4x S, 4x A, 4x B)</p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  )}
                 </div>
                 )}
 
