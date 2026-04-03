@@ -53,6 +53,14 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
     }
   }, [isOpen, resetState]);
 
+  // Focus input when step changes in changepin mode
+  useEffect(() => {
+    if (isOpen && mode === 'changepin' && !isSubmitting) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+  }, [step, mode, isOpen, isSubmitting]);
+
   // Handle PIN input change
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
@@ -112,24 +120,35 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
         body: JSON.stringify({ pin: pinValue }),
       });
       const data = await res.json();
-      
+
       if (res.ok && data.valid) {
         setStep('new');
         setError('');
+        // Focus input after step change with a small delay to ensure render is complete
+        setIsSubmitting(false);
+        requestAnimationFrame(() => {
+          inputRef.current?.focus();
+        });
       } else {
         setError('PIN saat ini salah');
         setCurrentPin('');
         setShake(true);
         setTimeout(() => setShake(false), 600);
+        setIsSubmitting(false);
+        requestAnimationFrame(() => {
+          inputRef.current?.focus();
+        });
       }
     } catch {
       setError('Terjadi kesalahan');
       setCurrentPin('');
       setShake(true);
       setTimeout(() => setShake(false), 600);
+      setIsSubmitting(false);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     }
-    setIsSubmitting(false);
-    inputRef.current?.focus();
   };
 
   const handleChangePin = async (current: string, newPinVal: string, confirmVal: string) => {
@@ -315,7 +334,7 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
                   ) : (
                     <motion.div
                       key="pin-input"
-                      className="flex flex-col items-center"
+                      className="flex flex-col items-center relative"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -394,7 +413,7 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
                         })}
                       </motion.div>
 
-                      {/* Hidden input */}
+                      {/* Hidden input - accessible for keyboard input */}
                       <input
                         ref={inputRef}
                         type="tel"
@@ -403,17 +422,19 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
                         autoComplete="one-time-code"
                         value={getCurrentPinValue()}
                         onChange={handlePinChange}
-                        className="absolute opacity-0 pointer-events-none"
+                        className="absolute -top-10 left-0 w-1 h-1 opacity-0"
                         disabled={isSubmitting}
+                        aria-label={getStepTitle()}
                       />
 
-                      {/* Click to focus */}
+                      {/* Click to focus hint - clickable area */}
                       <button
+                        type="button"
                         onClick={() => inputRef.current?.focus()}
-                        className="w-full h-12 flex items-center justify-center text-xs text-white/20 hover:text-white/40 transition-colors"
+                        className="w-full h-12 flex items-center justify-center text-xs text-white/20 hover:text-white/40 transition-colors mt-2"
                       >
                         {isSubmitting ? (
-                          <motion.div 
+                          <motion.div
                             className="w-5 h-5 border-2 border-white/20 border-t-amber-400 rounded-full"
                             animate={{ rotate: 360 }}
                             transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
