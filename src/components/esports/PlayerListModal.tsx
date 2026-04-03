@@ -72,7 +72,8 @@ export function PlayerListModal({ isOpen, onOpenChange, players, division }: Pla
 
           {/* Sheet - with drag to close */}
           <motion.div
-            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-2xl max-h-[75vh] overflow-hidden flex flex-col mb-16"
+            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-2xl overflow-hidden flex flex-col"
+            style={{ maxHeight: 'calc(100dvh - 80px)', paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
