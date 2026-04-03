@@ -378,7 +378,22 @@ async function connectWhatsApp() {
       if (qr) {
         latestQR = qr;
         connectionStatus = "qr_required";
-        console.log("[Bot] 📱 QR generated");
+
+        // Generate ASCII QR code for logs
+        try {
+          const asciiQR = await QRCode.toString(qr, { type: 'terminal', small: true });
+          console.log("\n");
+          console.log("════════════════════════════════════════════════════════════");
+          console.log("  📱 SCAN QR CODE WHATSAPP");
+          console.log("════════════════════════════════════════════════════════════");
+          console.log(asciiQR);
+          console.log("════════════════════════════════════════════════════════════");
+          console.log("  📱 Buka WhatsApp → Settings → Linked Devices → Scan");
+          console.log("════════════════════════════════════════════════════════════");
+          console.log("\n");
+        } catch (e) {
+          console.log("[Bot] 📱 QR generated - check /api/qr endpoint");
+        }
       }
 
       if (connection === "close") {
