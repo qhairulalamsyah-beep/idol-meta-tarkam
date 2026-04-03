@@ -25,7 +25,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 const STORAGE_KEY = 'idm-pwa-install';
 const VISIT_COUNT_KEY = 'idm-visit-count';
-const MIN_VISITS_BEFORE_SHOW = 2;
+const MIN_VISITS_BEFORE_SHOW = 1; // Changed to 1 for testing - will show on first visit
 
 function getIsStandalone(): boolean {
   if (typeof window === 'undefined') return false;
@@ -65,7 +65,7 @@ export function PWAInstallPrompt() {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     if (isIOS && isSafari && visits >= MIN_VISITS_BEFORE_SHOW) {
-      timerRef.current = setTimeout(() => setShowIosHint(true), 5000);
+      timerRef.current = setTimeout(() => setShowIosHint(true), 2000); // 2 seconds for testing
       return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     }
 
@@ -74,7 +74,7 @@ export function PWAInstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       if (visits >= MIN_VISITS_BEFORE_SHOW) {
-        timerRef.current = setTimeout(() => setShowPrompt(true), 5000);
+        timerRef.current = setTimeout(() => setShowPrompt(true), 2000); // 2 seconds for testing
       }
     };
 
