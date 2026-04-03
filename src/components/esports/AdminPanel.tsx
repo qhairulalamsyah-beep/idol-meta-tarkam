@@ -92,10 +92,10 @@ interface AdminPanelProps {
   onSetMVP: (userId: string, mvpScore: number) => void;
   onRemoveMVP: (userId: string) => void;
   onUpdateStatus: (status: string) => void;
-  onGenerateTeams: () => void;
-  onResetTeams: () => void;
+  onGenerateTeams: () => Promise<void>;
+  onResetTeams: () => Promise<void>;
   teamsCount: number;
-  onGenerateBracket: (type: string) => void;
+  onGenerateBracket: (type: string) => Promise<void>;
   onFinalize: () => void;
   onResetSeason: () => void;
   onUpdatePrizePool: (prizePool: number) => Promise<void>;
@@ -1037,7 +1037,19 @@ export function AdminPanel({
 
                             {/* Step button */}
                             <motion.button
-                              onClick={() => onUpdateStatus(step.key)}
+                              onClick={async () => {
+                                // Special handling for team_generation and bracket_ready
+                                if (step.key === 'team_generation') {
+                                  // Generate teams first
+                                  await onGenerateTeams();
+                                } else if (step.key === 'bracket_ready') {
+                                  // Generate bracket first
+                                  await onGenerateBracket('single');
+                                } else {
+                                  // For other steps, just update status
+                                  onUpdateStatus(step.key);
+                                }
+                              }}
                               className="flex flex-col items-center gap-2 relative z-10 cursor-pointer mx-auto"
                               whileTap={{ scale: 0.9 }}
                               whileHover={{ scale: 1.05 }}

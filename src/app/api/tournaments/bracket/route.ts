@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       db.match.createMany({ data: allMatchData }),
       db.tournament.update({
         where: { id: tournamentId },
-        data: { status: 'ongoing', bracketType },
+        data: { status: 'bracket_ready', bracketType },
       }),
     ]);
 

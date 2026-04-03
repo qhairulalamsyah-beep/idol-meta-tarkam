@@ -663,6 +663,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       const data = await res.json();
 
       if (data.success) {
+        // Update tournament status to team_generation
+        await adminFetch('/api/tournaments', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tournamentId: currentTournament.id, status: 'team_generation' }),
+        });
         get().addToast(`${data.teams.length} tim berhasil dibuat!`, 'success');
         get().fetchData(false);
       } else {
