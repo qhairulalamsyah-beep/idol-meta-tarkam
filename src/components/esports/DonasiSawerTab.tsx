@@ -97,7 +97,7 @@ interface DonasiSawerTabProps {
     message?: string;
     paymentMethod: string;
     proofUrl?: string;
-  }) => void;
+  }) => Promise<boolean>;
   defaultTab?: 'sawer' | 'donasi';
 }
 

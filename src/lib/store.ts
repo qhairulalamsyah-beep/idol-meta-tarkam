@@ -144,6 +144,15 @@ interface AppState {
   removeMVP: (userId: string) => Promise<void>;
   finalizeTournament: () => Promise<void>;
   donate: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string) => Promise<void>;
+  sawer: (data: {
+    senderName: string;
+    senderAvatar?: string;
+    targetPlayerId?: string;
+    targetPlayerName?: string;
+    amount: number;
+    message?: string;
+    paymentMethod: string;
+  }) => Promise<boolean>;
   seedDatabase: () => Promise<void>;
   resetSeason: () => Promise<void>;
   createTournament: (opts: { name: string; division: string; type: string; bracketType: string; week: number; startDate?: string | null; mode?: string; bpm?: string; lokasi?: string }) => Promise<void>;
@@ -821,13 +830,48 @@ export const useAppStore = create<AppState>((set, get) => ({
         }),
       });
 
-      if (res.ok) {
-        get().addToast('Donasi tercatat! Menunggu konfirmasi pembayaran.', 'info');
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        get().addToast('Terima kasih! Donasi Anda sedang menunggu verifikasi admin.', 'success');
         get().fetchData(false);
+      } else {
+        get().addToast(data.error || 'Gagal mengirim donasi', 'error');
       }
     } catch (error) {
       console.error('Error donating:', error);
-      get().addToast('Donasi gagal', 'error');
+      get().addToast('Gagal mengirim donasi. Silakan coba lagi.', 'error');
+    }
+  },
+
+  sawer: async (sawerData) => {
+    try {
+      const { currentTournament, currentUser } = get();
+
+      const res = await fetch('/api/sawer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...sawerData,
+          tournamentId: currentTournament?.id,
+          senderAvatar: currentUser?.avatar,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.id) {
+        get().addToast('Sawer tercatat! Menunggu verifikasi pembayaran.', 'success');
+        get().fetchData(false);
+        return true;
+      } else {
+        get().addToast(data.error || 'Gagal mengirim sawer', 'error');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error sawer:', error);
+      get().addToast('Gagal mengirim sawer. Silakan coba lagi.', 'error');
+      return false;
     }
   },
 

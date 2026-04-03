@@ -19,10 +19,12 @@ import {
   Music,
   MapPin,
   Shield,
+  Gift,
 } from 'lucide-react';
 import { QualifiedPlayersModal } from './QualifiedPlayersModal';
 import { AllRankingsModal } from './AllRankingsModal';
 import { DonationModal } from './DonationModal';
+import { SawerModal } from './SawerModal';
 
 /* ─────────────────────────────────────────────
    Interfaces — preserved exactly
@@ -100,6 +102,16 @@ interface DashboardProps {
   }>;
   totalDonation?: number;
   onDonate?: (amount: number, message: string, anonymous: boolean, paymentMethod: string) => void;
+  totalSawer?: number;
+  onSawer?: (data: {
+    senderName: string;
+    senderAvatar?: string;
+    targetPlayerId?: string;
+    targetPlayerName?: string;
+    amount: number;
+    message?: string;
+    paymentMethod: string;
+  }) => Promise<boolean>;
 }
 
 /* ─────────────────────────────────────────────
@@ -264,6 +276,8 @@ export function Dashboard({
   topClubs,
   totalDonation = 0,
   onDonate,
+  totalSawer = 0,
+  onSawer,
 }: DashboardProps) {
   const isMale = division === 'male';
   const cardClass = isMale ? 'card-gold' : 'card-pink';
@@ -304,6 +318,9 @@ export function Dashboard({
 
   /* ── Donation Modal State ── */
   const [donationModalOpen, setDonationModalOpen] = useState(false);
+
+  /* ── Sawer Modal State ── */
+  const [sawerModalOpen, setSawerModalOpen] = useState(false);
 
   /* ── Deterministic gradient for club letter avatar ── */
   const clubGradients = [
@@ -521,17 +538,17 @@ export function Dashboard({
                   </div>
                   {/* Divider */}
                   <div className="info-block-divider" />
-                  {/* Participants */}
-                  <div 
+                  {/* Sawer */}
+                  <div
                     className="info-block cursor-pointer hover:bg-white/[0.02] rounded-xl transition-colors"
-                    onClick={(e) => { e.stopPropagation(); onViewPlayers?.(); }}
+                    onClick={(e) => { e.stopPropagation(); setSawerModalOpen(true); }}
                   >
                     <div className={`info-block-icon ${isMale ? 'icon-gold' : 'icon-pink'}`}>
-                      <Users className="w-3.5 h-3.5" />
+                      <Gift className="w-3.5 h-3.5" />
                     </div>
                     <div className="info-block-content">
-                      <span className="info-block-value text-white/90">{countParticipants}</span>
-                      <span className="info-block-label">Peserta</span>
+                      <span className={`info-block-value ${accentColor}`}>Rp {compactPrize(totalSawer)}</span>
+                      <span className="info-block-label">Sawer</span>
                     </div>
                   </div>
                 </div>
@@ -1514,6 +1531,17 @@ export function Dashboard({
         division={division}
         totalDonation={totalDonation}
         onDonate={onDonate}
+      />
+
+      {/* Sawer Modal */}
+      <SawerModal
+        isOpen={sawerModalOpen}
+        onOpenChange={setSawerModalOpen}
+        division={division}
+        totalSawer={totalSawer}
+        prizePool={tournament?.prizePool || 0}
+        topPlayers={topPlayers}
+        onSawer={onSawer}
       />
     </motion.div>
   );

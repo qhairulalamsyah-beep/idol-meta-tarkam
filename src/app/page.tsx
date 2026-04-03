@@ -77,6 +77,7 @@ export default function IDOLMETAApp() {
     removeMVP,
     finalizeTournament,
     donate,
+    sawer,
     removeToast,
     seedDatabase,
     resetSeason,
@@ -487,21 +488,6 @@ export default function IDOLMETAApp() {
       : { registrations: 0, teams: 0, matches: 0 },
   })), [tournaments]);
 
-  // Sawer handler
-  const handleSawer = async (data: { senderName: string; amount: number; paymentMethod?: string; [key: string]: unknown }) => {
-    try {
-      const res = await fetch('/api/sawer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, tournamentId: currentTournament?.id, division }),
-      });
-      if (res.ok) {
-        addToast(`${data.senderName} menyawer Rp${data.amount}! Menunggu konfirmasi pembayaran.`, 'info');
-        fetchData(false);
-      }
-    } catch {}
-  };
-
   return (
     <main className="h-dvh flex flex-col text-white overflow-hidden relative">
       {/* ========================================
@@ -800,6 +786,10 @@ export default function IDOLMETAApp() {
                     leaderboardTab={leaderboardTab}
                     onLeaderboardTabChange={setLeaderboardTab}
                     topClubs={topClubs}
+                    totalDonation={totalDonation}
+                    onDonate={(amount, message, anonymous, paymentMethod) => donate(amount, message, anonymous, paymentMethod)}
+                    totalSawer={totalSawer}
+                    onSawer={sawer}
                   />
                 )}
 
@@ -868,7 +858,7 @@ export default function IDOLMETAApp() {
                     tournamentPrizePool={currentTournament?.prizePool || 0}
                     totalSawer={totalSawer}
                     onDonate={(amount, message, anonymous, paymentMethod) => donate(amount, message, anonymous, paymentMethod)}
-                    onSawer={handleSawer}
+                    onSawer={sawer}
                     defaultTab={donationDefaultTab}
                   />
                 )}
