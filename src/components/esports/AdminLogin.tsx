@@ -180,6 +180,7 @@ export function AdminLogin({ isOpen, onOpenChange, onLogin }: AdminLoginProps) {
           setConfirmPin('');
           setStep('current');
           setPin('');
+          onOpenChange(false); // Close modal after success
         }, 2000);
       } else {
         setError(data.error || 'Gagal mengubah PIN');
