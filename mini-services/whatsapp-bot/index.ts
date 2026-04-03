@@ -470,12 +470,54 @@ const server = Bun.serve({
       }, { headers: cors });
     }
 
-    // QR
+    // QR (JSON)
     if (url.pathname === "/api/qr") {
       if (!latestQR) return Response.json({ error: "No QR", status: connectionStatus }, { status: 400, headers: cors });
       try {
         const qr = await QRCode.toDataURL(latestQR);
         return Response.json({ qr, status: connectionStatus }, { headers: cors });
+      } catch (err) {
+        return Response.json({ error: "QR failed" }, { status: 500, headers: cors });
+      }
+    }
+
+    // QR Page (HTML)
+    if (url.pathname === "/qr") {
+      if (!latestQR) {
+        return new Response(`
+          <html>
+            <head><title>IDOL META Bot</title></head>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial;background:#1a1a2e;color:#fff;">
+              <div style="text-align:center;">
+                <h2>⏳ Menunggu QR Code...</h2>
+                <p>Status: ${connectionStatus}</p>
+                <p>Refresh halaman ini dalam beberapa detik</p>
+              </div>
+            </body>
+          </html>
+        `, { headers: { "Content-Type": "text/html" } });
+      }
+      try {
+        const qr = await QRCode.toDataURL(latestQR);
+        return new Response(`
+          <html>
+            <head>
+              <title>IDOL META - WhatsApp Bot</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:Arial;background:#1a1a2e;color:#fff;margin:0;">
+              <div style="text-align:center;padding:20px;">
+                <h1 style="color:#e94560;">🎮 IDOL META</h1>
+                <h2>WhatsApp Bot</h2>
+                <div style="background:#fff;padding:20px;border-radius:16px;margin:20px 0;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+                  <img src="${qr}" style="max-width:300px;width:100%;" />
+                </div>
+                <p style="color:#aaa;">📱 Scan dengan WhatsApp</p>
+                <p style="font-size:12px;color:#666;">Settings → Linked Devices → Link a Device</p>
+              </div>
+            </body>
+          </html>
+        `, { headers: { "Content-Type": "text/html" } });
       } catch (err) {
         return Response.json({ error: "QR failed" }, { status: 500, headers: cors });
       }
