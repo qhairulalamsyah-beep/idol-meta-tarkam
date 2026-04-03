@@ -88,7 +88,7 @@ interface DonasiSawerTabProps {
   tournamentId?: string;
   tournamentPrizePool?: number;
   totalSawer?: number;
-  onDonate: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string) => void;
+  onDonate: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string, donorName?: string) => void;
   onSawer: (data: {
     senderName: string;
     senderAvatar?: string;
@@ -213,6 +213,7 @@ export function DonasiSawerTab({
   const [donasiAmount, setDonasiAmount] = useState(5000);
   const [donasiCustom, setDonasiCustom] = useState('');
   const [donasiMessage, setDonasiMessage] = useState('');
+  const [donorName, setDonorName] = useState('');
   const [anonymous, setAnonymous] = useState(false);
 
   // ── Proof of payment state ──
@@ -366,7 +367,7 @@ export function DonasiSawerTab({
         };
         setSawerList((prev) => [newItem, ...prev]);
       } else {
-        onDonate(donasiEffective, donasiMessage, anonymous, selectedPaymentMethod, proofUrl);
+        onDonate(donasiEffective, donasiMessage, anonymous, selectedPaymentMethod, proofUrl, donorName.trim() || undefined);
       }
       setPaymentStep(4);
     } finally {
@@ -423,6 +424,7 @@ export function DonasiSawerTab({
     setDonasiMessage('');
     setDonasiCustom('');
     setDonasiAmount(5000);
+    setDonorName('');
     setAnonymous(false);
   };
 
@@ -1050,6 +1052,20 @@ export function DonasiSawerTab({
                               onChange={(e) => { setDonasiCustom(e.target.value); if (e.target.value) setDonasiAmount(0); }}
                               placeholder="Nominal lainnya"
                               className="w-full px-4 py-4 lg:px-4 lg:py-3 rounded-xl bg-white/5 border border-white/8 text-white/90 text-[15px] lg:text-base placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors"
+                            />
+                          </div>
+
+                          {/* Donor Name */}
+                          <div>
+                            <label className="text-[11px] text-white/35 mb-2 block uppercase tracking-wider font-semibold">Nama Kamu</label>
+                            <input
+                              type="text"
+                              value={donorName}
+                              onChange={(e) => setDonorName(e.target.value)}
+                              placeholder="Nama yang akan ditampilkan..."
+                              maxLength={50}
+                              disabled={anonymous}
+                              className="w-full bg-white/5 border border-white/8 rounded-xl px-4 py-3 text-white/90 text-sm lg:text-base placeholder-white/25 focus:outline-none focus:border-white/15 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                           </div>
 

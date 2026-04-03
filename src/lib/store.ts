@@ -143,7 +143,7 @@ interface AppState {
   setMVP: (userId: string, mvpScore: number) => Promise<void>;
   removeMVP: (userId: string) => Promise<void>;
   finalizeTournament: () => Promise<void>;
-  donate: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string) => Promise<void>;
+  donate: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string, donorName?: string) => Promise<void>;
   sawer: (data: {
     senderName: string;
     senderAvatar?: string;
@@ -152,6 +152,7 @@ interface AppState {
     amount: number;
     message?: string;
     paymentMethod: string;
+    proofUrl?: string;
   }) => Promise<boolean>;
   seedDatabase: () => Promise<void>;
   resetSeason: () => Promise<void>;
@@ -813,7 +814,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  donate: async (amount, message, anonymous, paymentMethod, proofUrl) => {
+  donate: async (amount, message, anonymous, paymentMethod, proofUrl, donorName) => {
     try {
       const { currentUser } = get();
 
@@ -822,6 +823,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser?.id,
+          donorName,
           amount,
           message,
           anonymous,
@@ -853,6 +855,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...sawerData,
+          proofImageUrl: sawerData.proofUrl,
           tournamentId: currentTournament?.id,
           senderAvatar: currentUser?.avatar,
         }),

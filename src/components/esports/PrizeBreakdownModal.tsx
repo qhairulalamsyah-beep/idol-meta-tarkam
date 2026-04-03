@@ -112,7 +112,8 @@ export function PrizeBreakdownModal({ isOpen, onOpenChange, prizePool, division 
 
           {/* Sheet - with drag to close */}
           <motion.div
-            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-lg max-h-[80vh] overflow-hidden flex flex-col"
+            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-lg overflow-hidden flex flex-col"
+            style={{ maxHeight: 'calc(85vh - env(safe-area-inset-bottom, 0px))', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

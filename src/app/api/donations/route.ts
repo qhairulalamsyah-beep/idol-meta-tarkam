@@ -45,9 +45,19 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Transform donations to include donorName in the response
+    const transformedDonations = donations.map(d => ({
+      ...d,
+      user: d.anonymous
+        ? null
+        : d.user
+          ? d.user
+          : { id: null, name: d.donorName || 'Anonim', avatar: null },
+    }));
+
     return NextResponse.json({
       success: true,
-      donations,
+      donations: transformedDonations,
       totalDonation: totalDonation._sum.amount || 0,
       pendingCount,
     });
@@ -64,7 +74,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, amount, message, anonymous, tournamentId, paymentMethod, proofImageUrl } = body;
+    const { userId, donorName, amount, message, anonymous, tournamentId, paymentMethod, proofImageUrl } = body;
 
     // Validate amount
     if (!amount || parseFloat(amount) <= 0) {
@@ -78,6 +88,7 @@ export async function POST(request: NextRequest) {
       data: {
         id: uuidv4(),
         userId: anonymous ? null : userId,
+        donorName: anonymous ? null : (donorName || null),
         amount: parseFloat(amount),
         message: message || '',
         anonymous: anonymous || false,
@@ -99,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Broadcast via Pusher — fire and forget
     triggerNewDonation(tournamentId, {
       amount: donation.amount,
-      userName: donation.user?.name || 'Anonymous',
+      userName: donation.donorName || donation.user?.name || 'Anonymous',
       message: donation.message || undefined,
       tournamentId,
     }).catch(() => {});

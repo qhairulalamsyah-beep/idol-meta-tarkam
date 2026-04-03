@@ -180,6 +180,7 @@ model Ranking {
 model Donation {
   id             String    @id @default(cuid())
   userId         String?
+  donorName      String?   // Custom donor name (for non-logged-in users)
   amount         Float
   message        String?
   anonymous      Boolean   @default(false)

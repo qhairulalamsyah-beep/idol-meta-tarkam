@@ -101,7 +101,7 @@ interface DashboardProps {
     rank: number;
   }>;
   totalDonation?: number;
-  onDonate?: (amount: number, message: string, anonymous: boolean, paymentMethod: string) => void;
+  onDonate?: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string, donorName?: string) => void;
   totalSawer?: number;
   onSawer?: (data: {
     senderName: string;
@@ -111,6 +111,7 @@ interface DashboardProps {
     amount: number;
     message?: string;
     paymentMethod: string;
+    proofUrl?: string;
   }) => Promise<boolean>;
 }
 

@@ -787,7 +787,7 @@ export default function IDOLMETAApp() {
                     onLeaderboardTabChange={setLeaderboardTab}
                     topClubs={topClubs}
                     totalDonation={totalDonation}
-                    onDonate={(amount, message, anonymous, paymentMethod) => donate(amount, message, anonymous, paymentMethod)}
+                    onDonate={(amount, message, anonymous, paymentMethod, proofUrl, donorName) => donate(amount, message, anonymous, paymentMethod, proofUrl, donorName)}
                     totalSawer={totalSawer}
                     onSawer={sawer}
                   />
@@ -857,7 +857,7 @@ export default function IDOLMETAApp() {
                     tournamentId={currentTournament?.id}
                     tournamentPrizePool={currentTournament?.prizePool || 0}
                     totalSawer={totalSawer}
-                    onDonate={(amount, message, anonymous, paymentMethod) => donate(amount, message, anonymous, paymentMethod)}
+                    onDonate={(amount, message, anonymous, paymentMethod, proofUrl, donorName) => donate(amount, message, anonymous, paymentMethod, proofUrl, donorName)}
                     onSawer={sawer}
                     defaultTab={donationDefaultTab}
                   />
