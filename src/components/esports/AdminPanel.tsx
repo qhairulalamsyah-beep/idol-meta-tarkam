@@ -98,7 +98,7 @@ interface AdminPanelProps {
   onGenerateBracket: (type: string) => void;
   onFinalize: () => void;
   onResetSeason: () => void;
-  onUpdatePrizePool: (prizePool: number) => void;
+  onUpdatePrizePool: (prizePool: number) => Promise<void>;
   onCreateTournament: (opts: { name: string; division: string; type: string; bracketType: string; week: number; startDate?: string | null; mode?: string; bpm?: string; lokasi?: string }) => void;
   onLogout?: () => void;
   showTrigger?: boolean;
@@ -1233,16 +1233,24 @@ export function AdminPanel({
                       </div>
                     ))}
                     <motion.button
-                      onClick={() => {
+                      onClick={async () => {
                         const c = parseInt(prizeInput.champion) || 0;
                         const r = parseInt(prizeInput.runnerUp) || 0;
                         const t = parseInt(prizeInput.third) || 0;
                         const m = parseInt(prizeInput.mvp) || 0;
                         const total = c + r + t + m;
-                        if (total === 0) return;
+                        if (total === 0) {
+                          addToast('Masukkan jumlah hadiah terlebih dahulu', 'warning');
+                          return;
+                        }
                         setPrizeSaving(true);
-                        onUpdatePrizePool(total);
-                        setPrizeSaving(false);
+                        try {
+                          await onUpdatePrizePool(total);
+                        } catch {
+                          // Error toast already handled in store
+                        } finally {
+                          setPrizeSaving(false);
+                        }
                       }}
                       className={`w-full py-2.5 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 transition-all ${
                         prizeSaving
@@ -3206,7 +3214,7 @@ export function AdminPanel({
                             if (!tournament) return;
                             setDeleteTournamentLoading(true);
                             try {
-                              const res = await fetch(`/api/tournaments?id=${tournament.id}`, {
+                              const res = await adminFetch(`/api/tournaments?id=${tournament.id}`, {
                                 method: 'DELETE',
                               });
                               const data = await res.json();
