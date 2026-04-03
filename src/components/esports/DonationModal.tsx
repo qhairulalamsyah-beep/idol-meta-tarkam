@@ -19,7 +19,7 @@ interface DonationModalProps {
   onOpenChange: (open: boolean) => void;
   division: 'male' | 'female';
   totalDonation?: number;
-  onDonate?: (amount: number, message: string, anonymous: boolean, paymentMethod: string) => void;
+  onDonate?: (amount: number, message: string, anonymous: boolean, paymentMethod: string, proofUrl?: string, donorName?: string) => void;
 }
 
 type PaymentStep = 1 | 2 | 3;
@@ -49,6 +49,7 @@ export function DonationModal({
   const [paymentStep, setPaymentStep] = useState<PaymentStep>(1);
   const [amount, setAmount] = useState(10000);
   const [customAmount, setCustomAmount] = useState('');
+  const [donorName, setDonorName] = useState('');
   const [message, setMessage] = useState('');
   const [anonymous, setAnonymous] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('qris');
@@ -74,7 +75,7 @@ export function DonationModal({
   };
 
   const handleConfirmPayment = () => {
-    onDonate?.(effectiveAmount, message, anonymous, selectedPaymentMethod);
+    onDonate?.(effectiveAmount, message, anonymous, selectedPaymentMethod, undefined, donorName);
     closeModal();
   };
 
@@ -238,6 +239,21 @@ export function DonationModal({
                     </div>
                   </div>
 
+                  {/* Donor Name */}
+                  <div>
+                    <label className="text-[11px] text-white/35 uppercase tracking-wider font-semibold mb-2 block">
+                      Nama Donatur
+                    </label>
+                    <input
+                      type="text"
+                      value={donorName}
+                      onChange={(e) => setDonorName(e.target.value)}
+                      placeholder="Masukkan nama Anda"
+                      maxLength={50}
+                      className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-white/90 text-sm placeholder-white/25 focus:outline-none focus:border-red-500/30"
+                    />
+                  </div>
+
                   {/* Message */}
                   <div>
                     <label className="text-[11px] text-white/35 uppercase tracking-wider font-semibold mb-2 block">
@@ -254,7 +270,7 @@ export function DonationModal({
                   </div>
 
                   {/* Anonymous Toggle */}
-                  <label className="flex items-center gap-3 cursor-pointer">
+                  <label className="flex items-center gap-3 cursor-pointer" onClick={() => setAnonymous(!anonymous)}>
                     <div
                       className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
                         anonymous ? 'bg-red-500' : 'bg-white/[0.06] border border-white/[0.1]'
@@ -262,7 +278,7 @@ export function DonationModal({
                     >
                       {anonymous && <CheckCircle2 className="w-3 h-3 text-white" />}
                     </div>
-                    <span className="text-[13px] text-white/60">Sembunyikan nama saya</span>
+                    <span className="text-[13px] text-white/60">Sembunyikan nama saya (Anonim)</span>
                   </label>
 
                   {/* Continue Button */}
