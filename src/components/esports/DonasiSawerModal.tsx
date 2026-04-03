@@ -301,41 +301,6 @@ export function DonasiSawerModal({
     });
   };
 
-  // ── Step indicator ──
-  const stepLabels = ['Nominal', 'Metode', 'Bayar', 'Konfirmasi'];
-  const StepIndicator = () => (
-    <div className="flex items-center justify-center gap-2 mb-5">
-      {stepLabels.map((label, i) => {
-        const stepNum = (i + 1) as PaymentStep;
-        const isActive = paymentStep === stepNum;
-        const isDone = paymentStep > stepNum;
-        return (
-          <div key={label} className="flex items-center gap-2">
-            {i > 0 && (
-              <div className={`w-6 h-[2px] rounded-full transition-colors ${isDone ? (isMale ? 'bg-amber-400' : 'bg-violet-400') : 'bg-white/10'}`} />
-            )}
-            <div className="flex items-center gap-1.5">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                isActive
-                  ? btnClass + ' text-white/90'
-                  : isDone
-                    ? (isMale ? 'bg-amber-400/20 text-amber-400' : 'bg-violet-400/20 text-violet-400')
-                    : 'bg-white/5 text-white/25'
-              }`}>
-                {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : stepNum}
-              </div>
-              <span className={`text-[10px] font-semibold tracking-wide uppercase ${
-                isActive ? 'text-white/90' : 'text-white/25'
-              }`}>
-                {label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -374,9 +339,6 @@ export function DonasiSawerModal({
                 </button>
               </div>
             )}
-
-            {/* Step Indicator */}
-            <StepIndicator />
 
             {/* ── STEP 1: Amount Selection ── */}
             <AnimatePresence mode="wait">
