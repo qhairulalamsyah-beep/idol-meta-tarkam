@@ -76,7 +76,7 @@ export function TeamListModal({
 
           {/* Bottom Sheet - with drag to close */}
           <motion.div
-            className="relative w-full max-w-md lg:max-w-2xl max-h-[80vh] glass rounded-t-[32px] overflow-hidden flex flex-col"
+            className="relative w-full max-w-md lg:max-w-2xl max-h-[75vh] glass rounded-t-[32px] overflow-hidden flex flex-col mb-16"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}

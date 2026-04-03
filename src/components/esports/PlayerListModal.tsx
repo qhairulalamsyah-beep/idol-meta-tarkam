@@ -72,7 +72,7 @@ export function PlayerListModal({ isOpen, onOpenChange, players, division }: Pla
 
           {/* Sheet - with drag to close */}
           <motion.div
-            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+            className="relative glass rounded-t-[32px] w-full max-w-md lg:max-w-2xl max-h-[75vh] overflow-hidden flex flex-col mb-16"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
