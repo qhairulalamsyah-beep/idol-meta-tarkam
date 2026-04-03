@@ -1,26 +1,15 @@
 #!/bin/bash
-# IDOL META WhatsApp Bot — Startup Script
-# Patches Baileys noise-handler for Bun compatibility, then starts the bot
 
-NOISE_FILE="node_modules/@whiskeysockets/baileys/lib/Utils/noise-handler.js"
+# IDOL META WhatsApp Bot - Railway Start Script
 
-# Patch Baileys: inject safety guards for missing logger methods under Bun
-if [ -f "$NOISE_FILE" ]; then
-  # Add safe logger wrapper right after "logger = logger.child" line
-  if ! grep -q "logger.debug = logger.debug || function" "$NOISE_FILE"; then
-    sed -i 's|logger = logger.child({ class: .* });|logger = logger.child({ class: '\''ns'\'' });\
-    if (!logger.debug) logger.debug = function() {};\
-    if (!logger.trace) logger.trace = function() {};\
-    if (!logger.info) logger.info = function() {};\
-    if (!logger.warn) logger.warn = function() {};\
-    if (!logger.error) logger.error = function() {};|' "$NOISE_FILE"
-    echo "[start.sh] Baileys noise-handler patched (logger safety guards added)"
-  fi
-fi
+echo "════════════════════════════════════════════════════════════"
+echo "  🤖 IDOL META WhatsApp Bot - Starting..."
+echo "════════════════════════════════════════════════════════════"
 
-while true; do
-  echo "[$(date)] Starting WhatsApp Bot..."
-  bun --hot index.ts
-  echo "[$(date)] Bot exited, restarting in 2s..."
-  sleep 2
-done
+# Run Prisma generate
+echo "[Setup] Running prisma generate..."
+bun run db:generate
+
+# Start the bot
+echo "[Setup] Starting WhatsApp bot..."
+exec bun index.ts

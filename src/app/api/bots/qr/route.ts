@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
-
-const WA_BOT_URL = 'http://localhost:6002';
+import { getConfig } from '@/lib/config';
 
 // GET /api/bots/qr — Check QR code availability from WhatsApp bot
 export async function GET() {
+  const config = getConfig();
+
+  // Use Railway URL in production, localhost in development
+  const botUrl = config.app.isProduction
+    ? config.bot.whatsappUrl
+    : 'http://localhost:6002';
+
   try {
-    const statusRes = await fetch(`${WA_BOT_URL}/`, {
+    const statusRes = await fetch(`${botUrl}/api/status`, {
       signal: AbortSignal.timeout(5000),
       headers: {
         'Accept': 'application/json',
@@ -24,7 +30,7 @@ export async function GET() {
 
     const statusData = await statusRes.json();
 
-    if (statusData.connection?.connected || statusData.connection?.state === 'connected') {
+    if (statusData.connected || statusData.status === 'connected') {
       return NextResponse.json({
         success: true,
         state: 'connected',
@@ -35,24 +41,24 @@ export async function GET() {
       });
     }
 
-    if (statusData.connection?.qrAvailable) {
+    if (statusData.hasQR || statusData.status === 'qr_required') {
       return NextResponse.json({
         success: true,
-        state: statusData.connection.state || 'qr',
+        state: 'qr',
         connected: false,
         qrAvailable: true,
-        qrUrl: '/api/bots/qr/image',
+        qrUrl: `${botUrl}/api/qr`,
         message: 'Scan QR code dengan WhatsApp → Perangkat Terhubung → Hubungkan Perangkat',
       });
     }
 
     return NextResponse.json({
       success: true,
-      state: statusData.connection?.state || 'connecting',
+      state: statusData.status || 'connecting',
       connected: false,
       qrAvailable: false,
       qrUrl: null,
-      message: statusData.connection?.state === 'connecting'
+      message: statusData.status === 'connecting'
         ? 'Menghubungkan ke WhatsApp... Mohon tunggu.'
         : 'QR code belum tersedia. Tunggu atau restart bot.',
     });

@@ -1,16 +1,18 @@
 {
   "name": "idolmeta-whatsapp-bot",
   "version": "1.0.0",
-  "description": "WhatsApp Bot for IDOL META Tournament Platform",
+  "description": "WhatsApp Bot for IDOL META Tournament Platform - Railway Deployment",
   "main": "index.ts",
   "private": true,
   "scripts": {
     "dev": "bun --hot index.ts",
     "start": "bun index.ts",
-    "postinstall": "node patch-baileys.js",
+    "postinstall": "node patch-baileys.js && prisma generate",
     "predev": "node patch-baileys.js",
     "prestart": "node patch-baileys.js",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "build": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
