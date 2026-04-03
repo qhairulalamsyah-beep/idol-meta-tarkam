@@ -518,38 +518,54 @@ export function Dashboard({
               {/* ── Right Column: Info Bar + CTA (non-results) OR Results ── */}
               <div className="lg:w-80 lg:flex-shrink-0">
 
-              {/* ── Prize Pool + Participants — refined inline info bar ── */}
-              {!showResults && (tournament?.prizePool || (registeredCount ?? tournament?.participants) > 0) && (
-                <div className="hero-info-bar mb-4">
-                  {/* Prize Pool */}
+              {/* ── Prize Pool Card ── */}
+              {!showResults && (
+                <motion.div 
+                  className="mb-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
                   <div 
-                    className="info-block cursor-pointer hover:bg-white/[0.02] rounded-xl transition-colors"
+                    className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02] ${isMale ? 'bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20' : 'bg-gradient-to-br from-violet-500/10 to-purple-500/5 border border-violet-500/20'}`}
                     onClick={(e) => { e.stopPropagation(); onViewPrize?.(); }}
                   >
-                    <div className={`info-block-icon ${isMale ? 'icon-gold' : 'icon-pink'}`}>
-                      <Trophy className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="info-block-content">
-                      <span className={`info-block-value ${accentColor}`}>Rp {compactPrize(countPrize)}</span>
-                      <span className="info-block-label">Hadiah</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isMale ? 'bg-amber-500/20' : 'bg-violet-500/20'}`}>
+                        <Trophy className={`w-6 h-6 ${accentColor}`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-semibold">Total Hadiah</p>
+                        <p className={`text-xl font-black ${accentColor}`}>Rp {compactPrize(countPrize)}</p>
+                      </div>
                     </div>
                   </div>
-                  {/* Divider */}
-                  <div className="info-block-divider" />
-                  {/* Sawer */}
-                  <div
-                    className="info-block cursor-pointer hover:bg-white/[0.02] rounded-xl transition-colors"
+                </motion.div>
+              )}
+
+              {/* ── Sawer Card ── */}
+              {!showResults && (
+                <motion.div 
+                  className="mb-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                >
+                  <div 
+                    className="relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02] bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-500/20"
                     onClick={(e) => { e.stopPropagation(); setDonasiSawerDefaultTab('sawer'); setDonasiSawerModalOpen(true); }}
                   >
-                    <div className={`info-block-icon ${isMale ? 'icon-gold' : 'icon-pink'}`}>
-                      <Gift className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="info-block-content">
-                      <span className={`info-block-value ${accentColor}`}>Rp {compactPrize(totalSawer)}</span>
-                      <span className="info-block-label">Sawer</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/20">
+                        <Gift className="w-6 h-6 text-emerald-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[11px] text-white/40 uppercase tracking-wider font-semibold">Sawer Prize Pool</p>
+                        <p className="text-xl font-black text-emerald-400">Rp {compactPrize(totalSawer)}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* ── CTA Buttons (when NOT showing results) ── */}
