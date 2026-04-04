@@ -10,7 +10,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, tournamentId } = body;
 
-    console.log(`[Register] Request: userId=${userId}, tournamentId=${tournamentId}`);
+    console.log(`[Register] ========== NEW REQUEST ==========`);
+    console.log(`[Register] userId: ${userId}`);
+    console.log(`[Register] tournamentId: ${tournamentId}`);
 
     if (!userId || !tournamentId) {
       console.log('[Register] Missing userId or tournamentId');
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`[Register] Existing registration:`, existing ? { id: existing.id, status: existing.status } : null);
+    console.log(`[Register] Existing registration found:`, existing ? `YES (status: ${existing.status})` : 'NO');
 
     if (existing) {
       // If rejected, allow re-registration by deleting old record
@@ -35,18 +37,21 @@ export async function POST(request: NextRequest) {
         await db.registration.delete({
           where: { id: existing.id },
         });
-        console.log(`[Register] Deleted rejected registration for user ${userId}`);
+        console.log(`[Register] Deleted rejected registration, proceeding with new registration`);
       } else if (existing.status === 'pending') {
+        console.log(`[Register] RETURN: Registration pending`);
         return NextResponse.json(
           { success: false, error: 'Pendaftaran Anda masih menunggu konfirmasi admin', status: 'pending' },
           { status: 400 }
         );
       } else if (existing.status === 'approved') {
+        console.log(`[Register] RETURN: Already approved`);
         return NextResponse.json(
           { success: false, error: 'Anda sudah terdaftar dan dikonfirmasi di turnamen ini', status: 'approved' },
           { status: 400 }
         );
       } else {
+        console.log(`[Register] RETURN: Unknown status ${existing.status}`);
         return NextResponse.json(
           { success: false, error: `Anda sudah terdaftar dengan status: ${existing.status}` },
           { status: 400 }
@@ -67,6 +72,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(`[Register] User found: ${user.name}`);
+
     // Create registration
     const registration = await db.registration.create({
       data: {
@@ -78,13 +85,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(`[Register] Created registration: ${registration.id}`);
+    console.log(`[Register] SUCCESS: Created registration ${registration.id}`);
 
     triggerRegistrationUpdate(tournamentId, { userId, userName: user.name, status: 'pending', tournamentId }).catch(() => {});
 
     return NextResponse.json({ success: true, registration });
   } catch (error) {
-    console.error('Error registering:', error);
+    console.error('[Register] ERROR:', error);
     return NextResponse.json(
       { success: false, error: `Gagal mendaftar: ${(error as Error).message}` },
       { status: 500 }
