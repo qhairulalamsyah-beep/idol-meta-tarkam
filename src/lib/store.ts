@@ -496,12 +496,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       const regData = await regRes.json();
 
       if (regRes.ok && regData.success) {
-        get().addToast('Pendaftaran berhasil dikirim!', 'success');
+        get().addToast(`Pendaftaran berhasil! Menunggu konfirmasi admin.`, 'success');
         get().fetchData(false);
       } else {
-        // Show the error message from server
+        // Show the error message from server with tournament info
+        console.log('[Register] Error:', regData);
+        const errorMsg = regData.error || 'Pendaftaran gagal';
         const errorType = regData.status === 'pending' ? 'warning' : regData.status === 'approved' ? 'info' : 'error';
-        get().addToast(regData.error || 'Pendaftaran gagal', errorType);
+        get().addToast(`${errorMsg} (Turnamen: ${currentTournament.name})`, errorType);
       }
     } catch (error) {
       console.error('Error registering:', error);
