@@ -382,7 +382,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         // Process tournaments
         const tournamentsData = tournamentsRes ? await tournamentsRes.json().catch(() => null) : null;
-        const tournament = tournamentsData?.tournaments?.[0] || null;
+        // Pick the most recent tournament that is NOT completed
+        const allTournaments = tournamentsData?.tournaments || [];
+        const tournament = allTournaments.find((t: { status: string }) => t.status !== 'completed') || allTournaments[0] || null;
 
         if (tournament) {
           set({ currentTournament: tournament });
