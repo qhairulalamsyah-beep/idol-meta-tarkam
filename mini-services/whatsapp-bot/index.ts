@@ -28,13 +28,23 @@ let dbReady = false;
 
 async function initDb() {
   try {
+    console.log("[Bot] 🔄 Connecting to database...");
+    console.log("[Bot] 📍 DATABASE_URL exists:", !!process.env.DATABASE_URL);
+
     const { PrismaClient } = await import('@prisma/client');
-    prisma = new PrismaClient();
+    prisma = new PrismaClient({
+      log: ['error', 'warn'],
+    });
+
+    await prisma.$connect();
+    console.log("[Bot] ✅ Prisma connected");
+
     await prisma.$queryRaw`SELECT 1`;
     dbReady = true;
-    console.log("[Bot] ✅ Database connected");
+    console.log("[Bot] ✅ Database connection verified");
   } catch (err) {
     console.error("[Bot] ❌ Database connection failed:", (err as Error).message);
+    console.error("[Bot] ❌ Full error:", err);
     dbReady = false;
   }
 }
