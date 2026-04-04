@@ -233,9 +233,14 @@ async function handleCommand(text: string, phone: string, jid: string): Promise<
 
       if (!tournament) return `❌ Belum ada turnamen ${division}.`;
 
-      // Create/find user
+      // Create/find user by phone or WhatsApp JID
       let user = await prisma.user.findFirst({
-        where: { phone: normalizePhone(phone) }
+        where: {
+          OR: [
+            { phone: normalizePhone(phone) },
+            { whatsappJid: jid }
+          ]
+        }
       });
 
       if (!user) {
@@ -257,9 +262,19 @@ async function handleCommand(text: string, phone: string, jid: string): Promise<
       });
 
       if (existing) {
-        return existing.status === "approved"
-          ? "✅ Anda sudah terdaftar!"
-          : "⏳ Pendaftaran Anda masih menunggu konfirmasi.";
+        // If rejected, allow re-registration
+        if (existing.status === "rejected") {
+          await prisma.registration.delete({
+            where: { id: existing.id }
+          });
+          console.log(`[Bot] Deleted rejected registration for ${user.name}`);
+        } else if (existing.status === "approved") {
+          return "✅ Anda sudah terdaftar dan dikonfirmasi di turnamen ini!";
+        } else if (existing.status === "pending") {
+          return "⏳ Pendaftaran Anda masih menunggu konfirmasi admin.";
+        } else {
+          return `⚠️ Anda sudah terdaftar dengan status: ${existing.status}`;
+        }
       }
 
       // Register

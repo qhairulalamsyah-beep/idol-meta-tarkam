@@ -18,10 +18,28 @@ export async function POST(request: NextRequest) {
     });
 
     if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'Already registered for this tournament' },
-        { status: 400 }
-      );
+      // If rejected, allow re-registration by deleting old record
+      if (existing.status === 'rejected') {
+        await db.registration.delete({
+          where: { id: existing.id },
+        });
+        console.log(`[Register] Deleted rejected registration for user ${userId}`);
+      } else if (existing.status === 'pending') {
+        return NextResponse.json(
+          { success: false, error: 'Pendaftaran Anda masih menunggu konfirmasi admin', status: 'pending' },
+          { status: 400 }
+        );
+      } else if (existing.status === 'approved') {
+        return NextResponse.json(
+          { success: false, error: 'Anda sudah terdaftar dan dikonfirmasi di turnamen ini', status: 'approved' },
+          { status: 400 }
+        );
+      } else {
+        return NextResponse.json(
+          { success: false, error: `Anda sudah terdaftar dengan status: ${existing.status}` },
+          { status: 400 }
+        );
+      }
     }
 
     // Get user info
