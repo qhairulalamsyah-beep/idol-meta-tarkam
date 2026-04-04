@@ -10,12 +10,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, tournamentId } = body;
 
+    console.log(`[Register] Request: userId=${userId}, tournamentId=${tournamentId}`);
+
+    if (!userId || !tournamentId) {
+      console.log('[Register] Missing userId or tournamentId');
+      return NextResponse.json(
+        { success: false, error: 'userId dan tournamentId diperlukan' },
+        { status: 400 }
+      );
+    }
+
     // Check if already registered
     const existing = await db.registration.findUnique({
       where: {
         userId_tournamentId: { userId, tournamentId },
       },
     });
+
+    console.log(`[Register] Existing registration:`, existing ? { id: existing.id, status: existing.status } : null);
 
     if (existing) {
       // If rejected, allow re-registration by deleting old record
@@ -48,8 +60,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      console.log(`[Register] User not found: ${userId}`);
       return NextResponse.json(
-        { success: false, error: 'User not found' },
+        { success: false, error: 'User tidak ditemukan' },
         { status: 404 }
       );
     }
@@ -65,13 +78,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    console.log(`[Register] Created registration: ${registration.id}`);
+
     triggerRegistrationUpdate(tournamentId, { userId, userName: user.name, status: 'pending', tournamentId }).catch(() => {});
 
     return NextResponse.json({ success: true, registration });
   } catch (error) {
     console.error('Error registering:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to register' },
+      { success: false, error: `Gagal mendaftar: ${(error as Error).message}` },
       { status: 500 }
     );
   }
